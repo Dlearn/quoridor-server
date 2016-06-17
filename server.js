@@ -9,10 +9,41 @@ server.connection({
     port: parseInt(process.env.SV_PORT, 10)
 });
 
-server.register({
+// Register views and template engine
+server.register(require("vision"), (err) => {
+    server.views({
+        engines: {
+            html: require("handlebars")
+        },
+        path: "views",
+        layoutPath: "views/layout",
+        layout: "default",
+        partialsPath: "views/partials"
+    });
+});
+
+// Register inert and public folder for serving of scripts, etc
+server.register(require("inert"), (err) => {
+    server.route({
+        method: "GET",
+        path: "/{param*}",
+        handler: {
+            directory: {
+                path: "public",
+                index: false
+            }
+        }
+    });
+})
+
+// Register plugins
+server.register([{
+    register: require("./plugins/home.js"),
+    options: {}
+}, {
     register: require("./plugins/quoridor.js"),
     options: {}
-}, (err) => {
+}], (err) => {
     if (err) {
         throw err;
     }

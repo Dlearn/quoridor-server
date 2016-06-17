@@ -5,17 +5,19 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-client": "browserify views/quoridor/main.js > views/quoridor/bundle.js",
+    "build-client": "browserify public/quoridor/main.js > public/quoridor/bundle.js",
     "start": "npm run build-client; node server"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "env2": "^2.1.0",
+    "handlebars": "^4.0.5",
     "hapi": "^13.4.1",
     "inert": "^4.0.0",
     "jquery": "^3.0.0",
     "redis": "^2.6.1",
-    "socket.io": "^1.4.6"
+    "socket.io": "^1.4.6",
+    "vision": "^4.1.0"
   }
 }
