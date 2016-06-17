@@ -1,5 +1,6 @@
 # Compiled browserify js
-views/quoridor/bundle.js
+# Note: this ignores all js files in ./public/ named bundle.js
+public/**/bundle.js
 
 # Brackets.io editor config files
 .eslintrc
