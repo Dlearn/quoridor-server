@@ -1,4 +1,4 @@
-var $ = require("jquery");
+window.jQuery = window.$ = require("jquery") // Ensure bootstrap dependency
 var io = require("socket.io-client");
 
 // Escaping functions

@@ -3,10 +3,6 @@
 const redis = require("redis");
 const redisClient = redis.createClient(); // TODO: Configure this in production
 
-function scriptTagWrapper (src) {
-    return "<script src='" + src + "'></script>";
-};
-
 exports.register = function (server, options, next) {
     // Init socket.io namespace "/quoridor"
     const io = require("socket.io")(server.listener).of("/quoridor");
@@ -37,7 +33,7 @@ exports.register = function (server, options, next) {
         method: "GET",
         path: "/quoridor",
         handler: function (request, reply) {
-            reply.view("quoridor", {footer: scriptTagWrapper("quoridor/bundle.js")});
+            reply.view("quoridor", {scripts: "quoridor/bundle.js"});
         }
     });
 

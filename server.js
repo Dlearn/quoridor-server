@@ -18,7 +18,8 @@ server.register(require("vision"), (err) => {
         path: "views",
         layoutPath: "views/layout",
         layout: "default",
-        partialsPath: "views/partials"
+        partialsPath: "views/partials",
+        helpersPath: "views/helpers"
     });
 });
 
