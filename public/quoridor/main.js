@@ -21,14 +21,32 @@ $( document ).ready(function () {
     // Init socket on quoridor namespace
     var socket = io("/quoridor");
     
+    // Emit room name to join relevant room
+    var urlPath = window.location.pathname.split("/");
+    var room = urlPath[urlPath.length - 1];
+    socket.emit("sv:room", room);
+    // need to check if room is valid!!
+    
+    socket.on("sv:redirect", function (data) {
+        if (data.redirect) {
+            window.location.replace("/quoridor");
+        }
+    });
+    
     // Init history
-    $.getJSON("/quoridor/recent", function (data) {
-        // Assumes data is an array
+    socket.on("chat:recent", function (data) {
+        // assumes data is an array
         data.forEach(function (item) {
             var msg = "<li>" + escapeHTML(item) + "</li>";
             $("#chatMessages").prepend(msg);
         });
-    })
+    });
+    
+    // On message received from server
+    socket.on("chat:message", function (data) {
+        var msg = "<li>" + escapeHTML(data) + "</li>";
+        $("#chatMessages").prepend(msg);
+    });
     
     // On chatForm submit
     $("#chatForm").submit(function () {
@@ -42,11 +60,5 @@ $( document ).ready(function () {
         // Clear input for next message
         $("#chatInput").val("");
         return false;
-    });
-
-    // On message received from server
-    socket.on("chat:message", function (data) {
-        var msg = "<li>" + escapeHTML(data) + "</li>";
-        $("#chatMessages").prepend(msg);
     });
 });

@@ -1,0 +1,36 @@
+<div class="container">
+    <div class="row row-centered">
+        <div class="col-max col-xs-6 col-centered" align="center">
+            <button class="btn btn-default btn-lg" id="btnCreateRoom">Create a new room</button>
+        </div>
+        <div class="col-max col-xs-6 col-centered" align="center">
+            <button class="btn btn-default btn-lg" data-toggle="modal" data-target="#joinRoomModal">Join an existing room</button>
+        </div>
+    </div>
+</div>
+<div id="joinRoomModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Join an existing room</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" id="inputForm">
+                    <div class="form-group" id="inputRoomGroup">
+                        <label class="control-label" for="inputRoom">Room code</label>
+                        <input type="text" class="form-control" id="inputRoom" placeholder="Enter room code">
+                        <!-->TODO: Make input active on open</!-->
+                    </div>
+                    <div class="form-group has-error" id="inputRoomFeedback" style="display: none">
+                        <label class="control-label">Invalid room code!</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

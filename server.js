@@ -4,6 +4,7 @@ const Hapi = require('hapi');
 const env = require('env2')('./.env');
 
 const server = new Hapi.Server();
+
 server.connection({
     host: '0.0.0.0',
     port: parseInt(process.env.SV_PORT, 10)
