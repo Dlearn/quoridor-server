@@ -11,13 +11,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "catbox-redis": "^2.0.2",
     "env2": "^2.1.0",
     "handlebars": "^4.0.5",
     "hapi": "^13.4.1",
     "inert": "^4.0.0",
     "jquery": "^2.2.4",
-    "redis": "^2.6.1",
-    "socket.io": "^1.4.6",
-    "vision": "^4.1.0"
+    "redis": "^2.6.2",
+    "socket.io": "^1.4.8",
+    "vision": "^4.1.0",
+    "yar": "^7.0.2"
   }
 }

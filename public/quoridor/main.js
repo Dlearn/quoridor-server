@@ -24,28 +24,47 @@ $( document ).ready(function () {
     // Emit room name to join relevant room
     var urlPath = window.location.pathname.split("/");
     var room = urlPath[urlPath.length - 1];
-    socket.emit("sv:room", room);
-    // need to check if room is valid!!
     
+    socket.on("disconnect", function() {
+        //alert("disconnect")
+    })
+    
+    socket.on("connect", function() {
+        socket.emit("sv:room", room);
+    })
+    
+    socket.on("reconnect", function() {
+        //alert("reconnect")
+    })
+    
+    // Server makes you redirect; does it need extra checks? i.e. auth
     socket.on("sv:redirect", function (data) {
         if (data.redirect) {
             window.location.replace("/quoridor");
         }
     });
     
+    socket.on("sv:updatename", function (data) {
+        // Update the name header
+        $("#nameHeader").html(escapeHTML(data));
+    });
+    
     // Init history
+    // What happens if dc (e.g. no wifi) and reconnect? do we need to clear the #chatMessages pane? (i.e. will it send the whole block again) What if the room whiffs since there's no one in it?
     socket.on("chat:recent", function (data) {
         // assumes data is an array
         data.forEach(function (item) {
-            var msg = "<li>" + escapeHTML(item) + "</li>";
-            $("#chatMessages").prepend(msg);
+            var r = JSON.parse(item);
+            var msg = "<div><b>" + escapeHTML(r.name) + "</b>: " + escapeHTML(r.msg) + "</div>";
+            $("#chatMessages").append(msg);
         });
     });
     
     // On message received from server
     socket.on("chat:message", function (data) {
-        var msg = "<li>" + escapeHTML(data) + "</li>";
-        $("#chatMessages").prepend(msg);
+        var r = JSON.parse(data);
+        var msg = "<div><b>" + escapeHTML(r.name) + "</b>: " + escapeHTML(r.msg) + "</div>";
+        $("#chatMessages").append(msg);
     });
     
     // On chatForm submit
@@ -59,6 +78,20 @@ $( document ).ready(function () {
         socket.emit("io:message", $("#chatInput").val());
         // Clear input for next message
         $("#chatInput").val("");
+        return false;
+    });
+    
+    // On change name submit
+    $("#changeNameForm").submit(function () {
+        // Do not emit if input is empty
+        if ($("#nameInput").val().match(/^[\s]*$/) !== null) {
+            return false;
+        }
+        
+        // Send the message to the server
+        socket.emit("sv:namechange", $("#nameInput").val());
+        // Close the modal
+        $("#changeNameModal").modal("toggle");
         return false;
     });
 });

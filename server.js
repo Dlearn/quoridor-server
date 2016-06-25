@@ -3,11 +3,18 @@
 const Hapi = require('hapi');
 const env = require('env2')('./.env');
 
-const server = new Hapi.Server();
+const server = new Hapi.Server({
+    cache: {
+        engine: require("catbox-redis"), // More config available
+        name: "session", // Hapi cache name
+        shared: true
+    }
+});
+
 
 server.connection({
     host: '0.0.0.0',
-    port: parseInt(process.env.SV_PORT, 10)
+    port: parseInt(process.env.PORT, 10)
 });
 
 // Register views and template engine
@@ -38,13 +45,44 @@ server.register(require("inert"), (err) => {
     });
 })
 
+// Register yar for cookie session support, using catbox-redis as a cache store
+const cookieOptions = {
+    password: process.env.COOKIE_SECRET,
+    isSecure: process.env.NODE_ENV !== 'development', // This is set to true if process.env.NODE_ENV is set to production or staging. Required false if using HTTP 
+    isHttpOnly: true,
+    ttl: null // Cookies are deleted when the browser is closed
+};
+
+server.register({
+    register: require("yar"),
+    options: {
+        maxCookieSize: 0, // force server-side storage
+        cache: {
+            cache: "session", // Declared above in new Hapi.Server()
+            expiresIn: 7 * 24 * 60 * 60 * 1000, // Expires in 7 days
+            shared: true
+        },
+        cookieOptions: cookieOptions
+    }
+}, (err) => {
+    if (err) {
+        throw err;
+    }
+});
+
 // Register plugins
 server.register([{
     register: require("./plugins/home.js"),
     options: {}
 }, {
     register: require("./plugins/quoridor.js"),
-    options: {}
+    options: {
+        sessions: {
+            name: "session", // Default cookie name set by yar
+            encoding: "iron", // Default cookie encoding set by yar
+            cookieOptions: cookieOptions // Same options passed to yar
+        }
+    }
 }], (err) => {
     if (err) {
         throw err;

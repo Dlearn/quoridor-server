@@ -8,7 +8,7 @@ exports.register = function (server, options, next) {
             reply.view("index", {title: "wat", footer: "<script>alert('!!')</script>"});
         }
     });
-    
+
     next();
 };
 

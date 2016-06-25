@@ -1,12 +1,46 @@
-<div class="container-fluid">
-    <form id="chatForm">
-        New message:<br>
-        <input type="text" id="chatInput">
-        <br>
-        <button>Send</button>
-    </form>
+
+<div class="row content">
+    <div class="col-sm-6 col-md-8 panel panel-default content-panel">
+        <h1>Quoridor board goes here</h1>
+    </div>
+    <div class="col-sm-6 col-md-4 panel panel-default content-panel">
+        <div class="panel-heading">
+            <div>
+                Welcome, <span id="nameHeader">Anonymous</span>!
+                <button class="btn btn-default pull-right" data-toggle="modal" data-target="#changeNameModal">Change Name</button>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="chat-scroll" id="chatMessages">
+                
+            </div>
+        </div>
+        <div class="panel-footer">
+            <form id="chatForm" class="form-inline" role="form">
+                <div class="form-group">
+                    <input type="text" id="chatInput" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-default pull-right">Send</button>
+            </form>
+            
+        </div>
+    </div>
 </div>
-<div class="container-fluid" id="debug"></div>   
-<div>
-    <ul id="chatMessages"></ul>
+<div id="changeNameModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <form class="form-inline" role="form" id="changeNameForm">
+                    <div class="form-group">
+                        <label for="nameInput" class="control-label">Name:</label>
+                        <input type="text" id="nameInput" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>

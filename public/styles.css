@@ -1,3 +1,7 @@
+html, body {
+    height: 100%;
+}
+
 .navbar-brand {
     overflow: visible;
     padding-top: 1px;
@@ -21,4 +25,36 @@
     float: none;
     text-align: left;
     margin-right: -4px;
+}
+
+.column-wrap {
+    overflow: hidden;
+}
+
+.col-equal-height {
+    margin-bottom: -99999px;
+    padding-bottom: 99999px;
+}
+
+.content {
+    height: 85%;
+}
+
+.content-panel {
+    height: 100%;
+}
+
+.panel-body {
+    min-height: 200px;
+    height: 80%;
+    position: relative;
+}
+
+.chat-scroll {
+    overflow: scroll;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
 }

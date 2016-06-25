@@ -22,10 +22,11 @@ npm install
 Browserify is required for bundling client JS on server start.
 
 #### 4. Configuration
-The only configuration file as of now is a `.env` in the root folder. Currently, this takes two values:
+The only configuration file as of now is a `.env` in the root folder. Currently, this takes three values:
 ```sh
 export NODE_ENV=development
-export SV_PORT=3000
+export PORT=3000
+export COOKIE_SECRET=bobshoes
 ```
 
 #### 5. Start the server
