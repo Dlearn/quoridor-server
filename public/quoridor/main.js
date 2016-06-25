@@ -16,6 +16,10 @@ function unescapeHTML (escapedStr) {
     return child ? child.nodeValue : "";
 };
 
+function scrollBottom () {
+    $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+}
+
 // On page ready
 $( document ).ready(function () {
     // Init socket on quoridor namespace
@@ -57,6 +61,7 @@ $( document ).ready(function () {
             var r = JSON.parse(item);
             var msg = "<div><b>" + escapeHTML(r.name) + "</b>: " + escapeHTML(r.msg) + "</div>";
             $("#chatMessages").append(msg);
+            scrollBottom();
         });
     });
     
@@ -65,6 +70,7 @@ $( document ).ready(function () {
         var r = JSON.parse(data);
         var msg = "<div><b>" + escapeHTML(r.name) + "</b>: " + escapeHTML(r.msg) + "</div>";
         $("#chatMessages").append(msg);
+        scrollBottom();
     });
     
     // On chatForm submit

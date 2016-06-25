@@ -5,6 +5,8 @@ const redisClient = redis.createClient();  // TODO: Configure this in production
 const Statehood = require("statehood");
 
 const ROOM_EXPIRE_TIME = 15 * 60 * 1000  // Rooms expire in 15 MINUTES of no activity
+// TODO: The rooms don't actually refrehs yet
+
 
 // ------ Helper functions ------
 function makeId (length) {
@@ -207,15 +209,16 @@ exports.register = function (server, options, next) {
                 return reply({});
             }
             
+            let room = request.query.room.trim().toLowerCase()
             let payload = {
-                room: request.query.room,
+                room: room,
                 exists: false
             };
             
             // Query quoridor:rooms to see if room exists
             redisClient.multi()
                 .zremrangebyscore("quoridor:rooms", "-inf", expireTime()) // EXPIRE entries older than 15 mins
-                .zscore("quoridor:rooms", request.query.room) // a non-null value indicates the room exists
+                .zscore("quoridor:rooms", room) // a non-null value indicates the room exists
                 .exec(function (err, replies) {
                     
                     if (err) {
