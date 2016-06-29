@@ -20,6 +20,7 @@ function makeId (length) {
 
 const utils = require("../lib/utils.js");
 
+
 // ------ Register Hapi Plugin ------
 exports.register = function (server, options, next) {
     
@@ -33,7 +34,7 @@ exports.register = function (server, options, next) {
         cache: "session",
         segment: "!yar",
         shared: true,
-        expiresIn: 7 * 24 * 60 * 60 * 1000 // Expires in 7 days, same as the yar session config
+        expiresIn: 7 * 24 * 60 * 60 * 1000, // Expires in 7 days, same as the yar session config
     });
     
     // Init socket.io namespace "/quoridor"
@@ -49,7 +50,7 @@ exports.register = function (server, options, next) {
             
             if (err || !sessionCookie) {
                 // Send error message to the socket
-                return next(new Error("Invalid session cookie! Try closing and reopening the page."));
+                return next(new Error("Invalid session cookie! Try clearing your cookies and trying again."));
             }
             
             // Get session id
@@ -57,11 +58,13 @@ exports.register = function (server, options, next) {
             
             // Get socket name
             cache.get(socket.q_sid, (err, val, cached, log) => {
+                if (!val) {
+                    // no valid cookie
+                    return next(new Error("Invalid session!"));
+                }
                 socket.q_name = val.name || "Anonymous"
-            })
-            
-            return next();
-            
+                return next();
+            });
         });
     });
     
@@ -131,7 +134,7 @@ exports.register = function (server, options, next) {
             });
             // Currently, room expires after 10 minutes
             // TODO: Implement a way to destroy array when last client leaves room
-        });   
+        });
         
         // Fires on disconnect??
         socket.on("disconnect", function () {
@@ -167,24 +170,25 @@ exports.register = function (server, options, next) {
                 return reply.redirect("/quoridor");
             }
             
-            // Query quoridor:rooms to see if room exists
-            redisClient.multi()
-                .zremrangebyscore("quoridor:rooms", "-inf", utils.expireTime()) // EXPIRE entries older than 15 mins
-                .zscore("quoridor:rooms", request.params.roomId) // a non-null value indicates the room exists
-                .exec(function (err, replies) {
-                    if (err) {
-                        throw err;
-                    }
-                    
-                    let roomExists = replies[1];
-                    if (roomExists) {
-                        return reply.view("quoridor", {scripts: "/quoridor/bundle.js"});
-                    }
-                    
-                    // room does not exist
-                    return reply.redirect("/quoridor");
+            // Ensure a valid session is present in the database
+            request.yar.touch();
+            
+            // Query quoridor:room:* to see if room exists
+            redisClient.exists("quoridor:room:" + request.params.roomId, (err, val) => {
+                if (err) {
+                    throw err;
                 }
-            ); // End of exec function
+                
+                if (val) {
+                    // if val is not 0, room exists
+                    // returns 0 if not exists, returns 1 if exists
+                    return reply.view("quoridor", {scripts: "/quoridor/bundle.js"});
+                }
+                
+                // room does not exist
+                return reply.redirect("/quoridor");
+            });
+            
         } // End of handler function
     });
     
@@ -206,24 +210,21 @@ exports.register = function (server, options, next) {
                 exists: false
             };
             
-            // Query quoridor:rooms to see if room exists
-            redisClient.multi()
-                .zremrangebyscore("quoridor:rooms", "-inf", utils.expireTime()) // EXPIRE entries older than 15 mins
-                .zscore("quoridor:rooms", room) // a non-null value indicates the room exists
-                .exec(function (err, replies) {
-                    
-                    if (err) {
-                        throw err;
-                    }
-                    
-                    let roomExists = replies[1];
-                    if (roomExists) {
-                        payload.exists = true;
-                    }
-                    
-                    return reply(payload);
+            // Query quoridor:room:* to see if key exists
+            redisClient.exists("quoridor:room:" + room, (err, val) => {
+                if (err) {
+                    throw err;
                 }
-            ); // End of exec function
+                
+                if (val) {
+                    // if val is not 0, room exists
+                    // returns 0 if not exists, returns 1 if exists
+                    payload.exists = true;
+                }
+                
+                return reply(payload);
+            });
+            
         } // End of handler function
     });
     
@@ -237,31 +238,40 @@ exports.register = function (server, options, next) {
             function addRoomToRedis (callback) {
                 let roomId = makeId(5);
                 let currentTime = Number(new Date());
-                redisClient.zadd("quoridor:rooms", "NX", currentTime, roomId, (err, val) => {
+                
+                let roomObject = {
+                    connections: [],
+                    gameState: {},
+                    players: {red: null, blue: null},
+                    password: null,
+                    roomName: null,
+                    roomId: roomId
+                };
+                
+                
+                redisClient.set("quoridor:room:" + roomId, JSON.stringify(roomObject), "PX", ROOM_EXPIRE_TIME, "NX", (err, val) => {
                     
                     if (err) {
                         throw err;
                     }
                     
                     if (!val) {
-                        // Key already existed (val == 0), wasn't added. Try again.
+                        // Key already existed (val == null), wasn't added. Try again.
                         return addRoomToRedis(callback);
                     }
                     
-                    // Key was added
-                    return callback(null, roomId);
-                    
+                    return callback(null, roomObject)
                 });
             };
 
-            // Add roomId to the redis sorted set
-            addRoomToRedis(function (err, roomId) {
+            // Add room object to Redis in the form quoridor:room:roomId
+            addRoomToRedis(function (err, roomObject) {
                 // Room is now valid at roomId. Tell that to the client?
                 let payload = {
-                    room: roomId,
+                    room: roomObject.roomId,
                     redirect: true
                 };
-                console.log("Room request granted at: " + roomId)
+                console.log("Room request granted at: " + roomObject.roomId)
                 return reply(payload);
             });
             
