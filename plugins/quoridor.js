@@ -5,7 +5,7 @@ const redisClient = redis.createClient();  // TODO: Configure this in production
 const Statehood = require("statehood");
 
 const ROOM_EXPIRE_TIME = 15 * 60 * 1000  // Rooms expire in 15 MINUTES of no activity
-// TODO: The rooms don't actually refrehs yet
+// TODO: The rooms don't actually refresh yet
 
 
 // ------ Helper functions ------
@@ -18,16 +18,7 @@ function makeId (length) {
     return id;
 };
 
-function getCookie (cookies, name) {
-    // Returns cookies in the form "name=value"
-    cookies = cookies || "";
-    let cookie = cookies.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return cookie ? name + "=" + cookie.pop() : '';
-};
-
-function expireTime () {
-    return Number(new Date()) - (ROOM_EXPIRE_TIME);
-};
+const utils = require("../lib/utils.js");
 
 // ------ Register Hapi Plugin ------
 exports.register = function (server, options, next) {
@@ -51,7 +42,7 @@ exports.register = function (server, options, next) {
     // On socket connection, decorate socket object with fields
     io.use(function (socket, next) {
         
-        let sessionCookie = getCookie(socket.request.headers.cookie, options.sessions.name);
+        let sessionCookie = utils.getCookie(socket.request.headers.cookie, options.sessions.name);
         
         // Parse the signed cookie using Statehood
         def.parse(sessionCookie, (err, state, fail) => {
@@ -178,7 +169,7 @@ exports.register = function (server, options, next) {
             
             // Query quoridor:rooms to see if room exists
             redisClient.multi()
-                .zremrangebyscore("quoridor:rooms", "-inf", expireTime()) // EXPIRE entries older than 15 mins
+                .zremrangebyscore("quoridor:rooms", "-inf", utils.expireTime()) // EXPIRE entries older than 15 mins
                 .zscore("quoridor:rooms", request.params.roomId) // a non-null value indicates the room exists
                 .exec(function (err, replies) {
                     if (err) {
@@ -217,7 +208,7 @@ exports.register = function (server, options, next) {
             
             // Query quoridor:rooms to see if room exists
             redisClient.multi()
-                .zremrangebyscore("quoridor:rooms", "-inf", expireTime()) // EXPIRE entries older than 15 mins
+                .zremrangebyscore("quoridor:rooms", "-inf", utils.expireTime()) // EXPIRE entries older than 15 mins
                 .zscore("quoridor:rooms", room) // a non-null value indicates the room exists
                 .exec(function (err, replies) {
                     
