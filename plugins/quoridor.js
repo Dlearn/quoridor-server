@@ -58,6 +58,8 @@ exports.register = function (server, options, next) {
     // On socket connection, decorate socket object with fields
     io.use(function (socket, next) {
         
+        console.log("New socket connection!!!!!!!!!!!")
+        
         let sessionCookie = utils.getCookie(socket.request.headers.cookie, options.sessions.name);
         
         /*
@@ -122,13 +124,19 @@ exports.register = function (server, options, next) {
                             throw err;
                         }
                         
+                        
+                        
                         // Handling the results of redis.lrange (chat)
                         let output = replies[1] || [];
                         socket.emit("chat:recent", output);
                         socket.emit("sv:updatename", socket.q_name);
                     
                         // Handling the results of redis.get
-                        let getResult = replies[0] || {};
+                        let getResult = replies[0] || null;
+                        // band aid fix
+                        if (!getResult) {
+                            return socket.emit("sv:redirect", {redirect: true});
+                        }
                         let roomObject = JSON.parse(getResult);
                         let q_sid = socket.q_sid;
                         
@@ -206,6 +214,11 @@ exports.register = function (server, options, next) {
                 }
                 
                 let roomObject = JSON.parse(val);
+                
+                // band aid fix
+                if (!roomObject) {
+                    return socket.emit("sv:redirect", {redirect: true})
+                }
                 
                 if (!roomObject.gameState) {
                     let horizontalWalls = [];

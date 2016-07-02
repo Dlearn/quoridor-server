@@ -661,10 +661,11 @@ function selectMove (inMousePosition) {
         payload.row = cellRow;
     }
     
-    if (payload.col < 0 || 
+    if (payload.type === "wall" &&
+        (payload.col < 0 || 
         payload.col > COLS - 2 || 
         payload.row < 0 || 
-        payload.rows > ROWS - 2) 
+        payload.rows > ROWS - 2))
     {
         payload.type = null;
     }
