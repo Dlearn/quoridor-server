@@ -5,8 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-client": "browserify public/quoridor/main.js > public/quoridor/bundle.js; browserify public/quoridor-home/main.js > public/quoridor-home/bundle.js",
-    "start": "npm run build-client; node server"
+    "build-client": "browserify public/quoridor/main.js > public/quoridor/bundle.js && browserify public/quoridor-home/main.js > public/quoridor-home/bundle.js",
+    "start": "npm run build-client && node server"
   },
   "author": "",
   "license": "ISC",

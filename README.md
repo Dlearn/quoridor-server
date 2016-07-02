@@ -28,6 +28,7 @@ export NODE_ENV=development
 export PORT=3000
 export COOKIE_SECRET=bobshoes
 ```
+Note: COOKIE_SECRET must be at least 32 characters long.
 
 #### 5. Start the server
 ```sh
