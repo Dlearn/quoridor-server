@@ -61,6 +61,22 @@ $( document ).ready(function () {
         // Reassign gameState to the server issued state
         gameState = data;
         
+        // Print remaining wall dialogue
+        if (gameState.activePlayer === Player.RED) 
+            changeGameText(gameState.activePlayer + "'S TURN (" + gameState.redRemainingWalls + " WALLS REMAINING)");
+        else 
+            changeGameText(gameState.activePlayer + "'S TURN (" + gameState.bluRemainingWalls + " WALLS REMAINING)");
+
+        // Check if red or blu wins
+        if (gameState.redY === 0) {
+            changeGameText("RED WON! CLICK ANYWHERE TO RESTART."); 
+            gameState.currentStatus = GameStatus.RED_WON;
+        }
+        else if (gameState.bluY === ROWS-1) {
+            changeGameText("BLUE WON! CLICK ANYWHERE TO RESTART."); 
+            gameState.currentStatus = GameStatus.BLU_WON;
+        }
+        
         // gameState object changed, redraw all
         redrawAll();
     });
@@ -777,19 +793,8 @@ function clickAt (inMousePosition) {
 
 function updateGame () {
     // Swap active player
-    if (gameState.activePlayer === Player.RED) {
-        gameState.activePlayer = Player.BLU;
-        changeGameText(gameState.activePlayer + "'S TURN (" + gameState.bluRemainingWalls + " WALLS REMAINING)");
-    }
-    else {
-        gameState.activePlayer = Player.RED;
-        changeGameText(gameState.activePlayer + "'S TURN (" + gameState.redRemainingWalls + " WALLS REMAINING)");
-    }
-
-
-    // Check if red or blu wins
-    if (gameState.redY === 0) {changeGameText("RED WON! CLICK ANYWHERE TO RESTART."); gameState.currentStatus = GameStatus.RED_WON;}
-    else if (gameState.bluY === ROWS-1) {changeGameText("BLUE WON! CLICK ANYWHERE TO RESTART."); gameState.currentStatus = GameStatus.BLU_WON;}
+    if (gameState.activePlayer === Player.RED) gameState.activePlayer = Player.BLU;
+    else gameState.activePlayer = Player.RED;
 
     // Update valid movements
     updateValidMovements();
