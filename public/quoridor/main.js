@@ -174,11 +174,20 @@ var TEXT_OFFSET_X = 55, TEXT_OFFSET_Y = 25;
 // titleText canvas contexts
 var titleText = document.getElementById('title-text');
 titleText.width = NOTATION_PADDING + CANVAS_WIDTH;
-titleText.height = NOTATION_PADDING * 1.5;
+titleText.height = NOTATION_PADDING;
 
 var titleTextContext = titleText.getContext('2d');
 titleTextContext.font = "26px Futura";
 titleTextContext.fillText("QUORIDOR", 190, TEXT_OFFSET_Y);
+
+
+// TOP SPACE FOR BLUE WALLS
+var topNotation = document.getElementById('top-notation');
+topNotation.width = 2 * NOTATION_PADDING + CANVAS_WIDTH;
+topNotation.height = 2 * CELL_SIZE;
+
+var topContext = topNotation.getContext('2d');
+drawBluRemainingWalls(10);
 
 
 // Left column notation canvas contexts
@@ -188,29 +197,22 @@ leftNotation.height = CANVAS_HEIGHT;
 
 var leftContext = leftNotation.getContext('2d');
 leftContext.font = "26px Arial";
-
-for (var i=0; i < ROWS; i++) { 
-    leftContext.fillText(9-i, 10, 35+i*CELL_SIZE);
-};
+for (var i=0; i < ROWS; i++) leftContext.fillText(9-i, 10, 35+i*CELL_SIZE);
 
 
-// Bottom row notation canvas contexts
+// BOT SPACE FOR TEXT AND RED WALLS
 var botNotation = document.getElementById('bot-notation');
-botNotation.width = NOTATION_PADDING + CANVAS_WIDTH;
-botNotation.height = NOTATION_PADDING;
+botNotation.width = 2 * NOTATION_PADDING + CANVAS_WIDTH;
+botNotation.height = 2 * CELL_SIZE;
 
 var botContext = botNotation.getContext('2d');
-botContext.font = "26px Arial";
-
-for (var i=0; i < ROWS; i++) {  
-    botContext.fillText(String.fromCharCode(65+i), 55+i*CELL_SIZE, 25);
-};
+drawRedRemainingWalls(10);
 
 
 // Game text canvas contexts
 var gameText = document.getElementById('game-text');
 gameText.width = NOTATION_PADDING + CANVAS_WIDTH;
-gameText.height = NOTATION_PADDING + 10;
+gameText.height = NOTATION_PADDING;
 
 var gameTextContext = gameText.getContext('2d');
 gameTextContext.font = "22px Helvetica";
@@ -354,6 +356,43 @@ function redrawAll () {
     }
 };
 
+function drawBluRemainingWalls(inWallsLeft) {
+    topContext.clearRect(0 ,0, 2 * NOTATION_PADDING + CANVAS_WIDTH, 2 * CELL_SIZE);
+    topContext.lineWidth = WALL_STROKE_WIDTH;
+    topContext.strokeStyle = "blue";
+    topContext.lineCap = 'butt';
+
+    topContext.beginPath();
+    for(var i=0; i < inWallsLeft; i++) {
+        var x = NOTATION_PADDING + 4 + i * CELL_SIZE;
+        var y1 = WALL_PADDING;
+        var y2 = 2 * CELL_SIZE - WALL_PADDING;
+        topContext.moveTo(x, y1);
+        topContext.lineTo(x, y2);
+    }
+    topContext.stroke();
+}
+function drawRedRemainingWalls(inWallsLeft) {
+    botContext.clearRect(0 ,0, 2 * NOTATION_PADDING + CANVAS_WIDTH, 2 * CELL_SIZE);
+    
+    botContext.font = "26px Arial";
+    for (var i=0; i < ROWS; i++) botContext.fillText(String.fromCharCode(65+i), 55+i*CELL_SIZE, 25);
+    
+    botContext.lineWidth = WALL_STROKE_WIDTH;
+    botContext.strokeStyle = "red";
+    botContext.lineCap = 'butt';
+
+    botContext.beginPath();
+    for(var i=0; i < inWallsLeft; i++) {
+        var x = NOTATION_PADDING + 4 + i * CELL_SIZE;
+        var y1 = WALL_PADDING;
+        var y2 = 2 * CELL_SIZE - WALL_PADDING;
+        botContext.moveTo(x, y1);
+        botContext.lineTo(x, y2);
+    }
+    botContext.stroke();
+}
+
 function getCanvasMousePosition (event) {
     var rect = canvas.getBoundingClientRect();
 
@@ -423,8 +462,14 @@ function addWall(inCol, inRow, inDirection) {
         }
     }
 
-    if (gameState.activePlayer === Player.RED) gameState.redRemainingWalls--;
-    if (gameState.activePlayer === Player.BLU) gameState.bluRemainingWalls--;
+    if (gameState.activePlayer === Player.RED) {
+        gameState.redRemainingWalls--;
+        drawRedRemainingWalls(gameState.redRemainingWalls);
+    }
+    if (gameState.activePlayer === Player.BLU) {
+        gameState.bluRemainingWalls--;
+        drawBluRemainingWalls(gameState.bluRemainingWalls);
+    }
     return true;
 }
 
