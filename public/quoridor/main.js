@@ -60,7 +60,6 @@ $( document ).ready(function () {
     socket.on("game:receiveState", function (data) {
         // Reassign gameState to the server issued state
         gameState = data;
-		console.log(gameState.currentStatus);
         
         // Print remaining wall dialogue
         if (gameState.activePlayer === Player.RED) 
@@ -70,11 +69,11 @@ $( document ).ready(function () {
 
 		// Check if red or blu wins
 		if (gameState.redY === 0) {
-				GameText("RED WON! CLICK ANYWHERE TO RESTART."); 
+				GameText("RED WINS! RESTART?"); 
 			gameState.currentStatus = GameStatus.RED_WON;
 		}
 		else if (gameState.bluY === ROWS-1) {
-			changeGameText("BLUE WON! CLICK ANYWHERE TO RESTART."); 
+			changeGameText("BLUE WINS! RESTART?"); 
 			gameState.currentStatus = GameStatus.BLU_WON;
 		}
 	
@@ -404,7 +403,6 @@ function canAddWall(inCol, inRow, inDirection) {
 }
 
 function addWall(inCol, inRow, inDirection) {
-    console.log("Trying to add wall @ " + inCol + ", " + inRow);
     if (inDirection == Direction.HORIZONTAL)
     {
         gameState.horizontalWalls[inCol][inRow] = gameState.activePlayer;
@@ -653,7 +651,7 @@ function selectMove (inMousePosition) {
     // Get selected wall mouse cursor is near
     var wallCol = Math.round(inMousePosition.x / CELL_SIZE) - 1;
     var wallRow = Math.round(inMousePosition.y / CELL_SIZE) - 1;
-    
+	
     // Determine if mouse is near a wall
     var remainderX = inMousePosition.x % CELL_SIZE;
     var remainderY = inMousePosition.y % CELL_SIZE;
@@ -681,7 +679,7 @@ function selectMove (inMousePosition) {
         (payload.col < 0 || 
         payload.col > COLS - 2 || 
         payload.row < 0 || 
-        payload.rows > ROWS - 2))
+        payload.row > ROWS - 2))
     {
         payload.type = null;
     }
@@ -752,7 +750,8 @@ function hoverAt (inMousePosition) {
 
 function clickAt (inMousePosition) {
     if (!gameState.currentStatus === GameStatus.PLAYING) {
-        return;
+		// DYLAN TODO: REMAKE GAME BOARD
+		return;
     }
     
     clearAll();
