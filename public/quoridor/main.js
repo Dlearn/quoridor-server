@@ -224,7 +224,7 @@ canvas.height = CANVAS_HEIGHT;
 var context = canvas.getContext("2d");
 
 
-// ------ HELPER FUNCTIONS ------
+// ------ HELPER FUNCTIONS ------ //
 
 function changeGameText (inString) {
     gameTextContext.clearRect(0, 0, gameText.width, gameText.height);
@@ -349,10 +349,9 @@ function redrawAll () {
     for (var col = 0; col < COLS-1; col++) {
         for (var row = 0; row < ROWS-1; row++) {
             drawWall(col, row, gameState.horizontalWalls[col][row], Direction.HORIZONTAL);
-            
             drawWall(col, row, gameState.verticalWalls[col][row], Direction.VERTICAL);  
-        };
-    };
+        }
+    }
 };
 
 function getCanvasMousePosition (event) {
@@ -365,35 +364,35 @@ function getCanvasMousePosition (event) {
 };
 
 
-// ------ LOGIC FUNCTIONS ------
+// ------ LOGIC FUNCTIONS ------ //
 
 function canAddWall(inCol, inRow, inDirection) {
-    if (gameState.activePlayer == Player.EMPTY) throw Error("Player cannot be EMPTY");
+    if (gameState.activePlayer === Player.EMPTY) throw Error("Player cannot be EMPTY");
 
     //Hack to clamp the wall addition
-    if (inCol == -1) inCol = 0;
-    else if (inCol == COLS-1) inCol = COLS-2;
-    if (inRow == -1) inRow = 0;
-    else if (inRow == ROWS-1) inRow = ROWS-2;
+    if (inCol === -1) inCol = 0;
+    else if (inCol === COLS-1) inCol = COLS-2;
+    if (inRow === -1) inRow = 0;
+    else if (inRow === ROWS-1) inRow = ROWS-2;
 
     var horizontalWalls = gameState.horizontalWalls;
     var verticalWalls = gameState.verticalWalls;
 
-    var clashesHorizontally = horizontalWalls[inCol][inRow] != Player.EMPTY;
-    var clashesVertically = verticalWalls[inCol][inRow] != Player.EMPTY;
+    var clashesHorizontally = horizontalWalls[inCol][inRow] !== Player.EMPTY;
+    var clashesVertically = verticalWalls[inCol][inRow] !== Player.EMPTY;
     var clashesBack, clashesForward;
 
-    if (inDirection == Direction.HORIZONTAL) // if isHorizontal check left and right (same inRow different inCol)
+    if (inDirection === Direction.HORIZONTAL) // if isHorizontal check left and right (same inRow different inCol)
     {
-        if (inCol != 0) clashesBack = horizontalWalls[inCol-1][inRow] != Player.EMPTY;
+        if (inCol !== 0) clashesBack = horizontalWalls[inCol-1][inRow] !== Player.EMPTY;
         else clashesBack = false;
-        if (inCol != COLS-2) clashesForward = horizontalWalls[inCol+1][inRow] != Player.EMPTY;
+        if (inCol !== COLS-2) clashesForward = horizontalWalls[inCol+1][inRow] !== Player.EMPTY;
         else clashesForward = false;
     } else // Direction.VERTICAL check up and down (same inCol different inRow)
     {
-        if (inRow != 0) clashesBack = verticalWalls[inCol][inRow-1] != Player.EMPTY;
+        if (inRow !== 0) clashesBack = verticalWalls[inCol][inRow-1] !== Player.EMPTY;
         else clashesBack = false;
-        if (inRow != ROWS-2) clashesForward = verticalWalls[inCol][inRow+1] != Player.EMPTY;
+        if (inRow !== ROWS-2) clashesForward = verticalWalls[inCol][inRow+1] !== Player.EMPTY;
         else clashesForward = false;
     }
 
@@ -403,7 +402,7 @@ function canAddWall(inCol, inRow, inDirection) {
 }
 
 function addWall(inCol, inRow, inDirection) {
-    if (inDirection == Direction.HORIZONTAL)
+    if (inDirection === Direction.HORIZONTAL)
     {
         gameState.horizontalWalls[inCol][inRow] = gameState.activePlayer;
 
@@ -413,7 +412,7 @@ function addWall(inCol, inRow, inDirection) {
             gameState.horizontalWalls[inCol][inRow] = Player.EMPTY;
             return false;
         }
-    } else // inDirection == Direction.VERTICAL
+    } else // inDirection === Direction.VERTICAL
     {
         gameState.verticalWalls[inCol][inRow] = gameState.activePlayer;
 
@@ -423,7 +422,6 @@ function addWall(inCol, inRow, inDirection) {
             return false;
         }
     }
-    //console.log("Successfully added " + inDirection + " wall at: "+inRow+","+inCol);
 
     if (gameState.activePlayer === Player.RED) gameState.redRemainingWalls--;
     if (gameState.activePlayer === Player.BLU) gameState.bluRemainingWalls--;
@@ -431,7 +429,7 @@ function addWall(inCol, inRow, inDirection) {
 }
 
 function isNextToWallOrBorder (inCol, inRow, inUDLR) {
-    if (gameState.activePlayer == Player.EMPTY) throw Error("Player cannot be EMPTY");
+    if (gameState.activePlayer === Player.EMPTY) throw Error("Player cannot be EMPTY");
 
     var horizontalWalls = gameState.horizontalWalls;
     var verticalWalls = gameState.verticalWalls;
@@ -598,11 +596,11 @@ function isSolvable() {
 }
 
 function recursiveSolve (inX, inY, inPlayer) {
-    if (inPlayer == Player.EMPTY) throw Error("Player cannot be EMPTY");
+    if (inPlayer === Player.EMPTY) throw Error("Player cannot be EMPTY");
 
     // Teriminating Conditions
-    if (inPlayer == Player.RED && inY == 0) return true;
-    else if (inPlayer == Player.BLU && inY == ROWS-1) return true;
+    if (inPlayer === Player.RED && inY === 0) return true;
+    else if (inPlayer === Player.BLU && inY === ROWS-1) return true;
     wasHere[inX][inY] = true;
 
     // Check if can go up
@@ -638,7 +636,7 @@ function recursiveSolve (inX, inY, inPlayer) {
 }
 
 
-// ------ CONTROL FUNCTIONS ------
+// ------ CONTROL FUNCTIONS ------ //
 
 // Returns a object with the currently selected move based on mouse pos (does not do validation)
 function selectMove (inMousePosition) {
