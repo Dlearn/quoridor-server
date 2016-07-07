@@ -155,7 +155,7 @@ var CANVAS_WIDTH = CELL_SIZE * COLS;  // the drawing canvas
 var CANVAS_HEIGHT = CELL_SIZE * ROWS;
 
 // Players (circles) are displayed inside a cell, with padding from border
-var CIRCLE_RADIUS = 15; // width/height
+var CIRCLE_RADIUS = CELL_SIZE * 0.3; // width/height
 var CIRCLE_LINEWIDTH = 2; // pen stroke width
 
 // Grid drawing constants
@@ -178,7 +178,7 @@ titleText.height = NOTATION_PADDING;
 
 var titleTextContext = titleText.getContext('2d');
 titleTextContext.font = "26px Futura";
-titleTextContext.fillText("QUORIDOR", 190, TEXT_OFFSET_Y);
+titleTextContext.fillText("QUORIDOR", NOTATION_PADDING + CANVAS_WIDTH/2 - 80, TEXT_OFFSET_Y);
 
 
 // TOP SPACE FOR BLUE WALLS
@@ -197,7 +197,7 @@ leftNotation.height = CANVAS_HEIGHT;
 
 var leftContext = leftNotation.getContext('2d');
 leftContext.font = "26px Arial";
-for (var i=0; i < ROWS; i++) leftContext.fillText(9-i, 10, 35+i*CELL_SIZE);
+for (var i=0; i < ROWS; i++) leftContext.fillText(9-i, 10, (i + 0.5) * CELL_SIZE + 10);
 
 
 // BOT SPACE FOR TEXT AND RED WALLS
@@ -376,7 +376,10 @@ function drawRedRemainingWalls(inWallsLeft) {
     botContext.clearRect(0 ,0, 2 * NOTATION_PADDING + CANVAS_WIDTH, 2 * CELL_SIZE);
     
     botContext.font = "26px Arial";
-    for (var i=0; i < ROWS; i++) botContext.fillText(String.fromCharCode(65+i), 55+i*CELL_SIZE, 25);
+    for (var i=0; i < ROWS; i++) {
+        botContext.fillText(String.fromCharCode(65+i), 
+                            NOTATION_PADDING + (i + 0.5) * CELL_SIZE - 10, 25);
+    }
     
     botContext.lineWidth = WALL_STROKE_WIDTH;
     botContext.strokeStyle = "red";
