@@ -206,7 +206,7 @@ exports.register = function (server, options, next) {
         // Fires on game:refreshState (connection)
         socket.on("game:refreshState", function () {
             
-            console.log("socket.roomId: " + socket.roomId);
+            console.log("New Connection @ socket.roomId: " + socket.roomId);
             
             redisClient.get("quoridor:room:" + socket.roomId, function (err, val) {
                 if (err) {
@@ -268,6 +268,70 @@ exports.register = function (server, options, next) {
                         }
                     });
                 };
+                
+                socket.emit("game:receiveState", roomObject.gameState);
+            })
+        
+        });
+        
+        // Fires on game:restartGame (remake game)
+        socket.on("game:restartGame", function () {
+            
+            console.log("Remake Game @ socket.roomId: " + socket.roomId);
+            
+            redisClient.get("quoridor:room:" + socket.roomId, function (err, val) {
+                if (err) {
+                    throw err;
+                }
+                
+                let roomObject = JSON.parse(val);
+                
+                let horizontalWalls = [];
+                let verticalWalls = [];
+
+                for (let col = 0; col < (9-1); col++)
+                {
+                    let temporaryWallArrayForHorizontal = [];
+                    let temporaryWallArrayForVertical = [];
+                    temporaryWallArrayForHorizontal.length = (9-1);
+                    temporaryWallArrayForVertical.length = (9-1);
+                    for (let row = 0; row < (9-1); row++)
+                    {
+                        temporaryWallArrayForHorizontal[row] = "EMPTY";
+                        temporaryWallArrayForVertical[row] = "EMPTY";
+                    }
+                    horizontalWalls[col] = temporaryWallArrayForHorizontal;
+                    verticalWalls[col] = temporaryWallArrayForVertical;
+                }
+
+                let gameState =
+                    {
+                        redX : 4,
+                        redY : 9-1,
+                        redRemainingWalls : 10,
+                        bluX : 4,
+                        bluY : 0,
+                        bluRemainingWalls : 10,
+                        horizontalWalls : horizontalWalls,
+                        verticalWalls : verticalWalls,
+                        validMovementsRed : [[3,8],[4,7],[5,8]],
+                        validMovementsBlu : [[3,0],[4,1],[5,0]],
+                        currentStatus : "PLAYING",
+                        activePlayer : "RED"
+                    };
+
+                roomObject.gameState = gameState;
+
+                redisClient.set("quoridor:room:" + socket.roomId, JSON.stringify(roomObject), "PX", ROOM_EXPIRE_TIME, "XX", (err, val) => {
+                    if (err) {
+                        throw err;
+                    }
+
+                    if (!val) {
+                        console.warn("Warning! Attempt modify roomObject that does not exist??")
+                        // how to handle wat
+                    }
+                });
                 
                 socket.emit("game:receiveState", roomObject.gameState);
             })

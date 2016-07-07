@@ -69,7 +69,7 @@ $( document ).ready(function () {
 
 		// Check if red or blu wins
 		if (gameState.redY === 0) {
-				GameText("RED WINS! RESTART?"); 
+            GameText("RED WINS! RESTART?"); 
 			gameState.currentStatus = GameStatus.RED_WON;
 		}
 		else if (gameState.bluY === ROWS-1) {
@@ -723,7 +723,7 @@ function validateMove (inCol, inRow) {
 };
 
 function hoverAt (inMousePosition) {
-    if (!gameState.currentStatus === GameStatus.PLAYING) {
+    if (gameState.currentStatus !== GameStatus.PLAYING) {
         return;
     }
     
@@ -749,8 +749,8 @@ function hoverAt (inMousePosition) {
 };
 
 function clickAt (inMousePosition) {
-    if (!gameState.currentStatus === GameStatus.PLAYING) {
-		// DYLAN TODO: REMAKE GAME BOARD
+    if (gameState.currentStatus !== GameStatus.PLAYING) {
+		socket.emit("game:restartGame", "");
 		return;
     }
     
