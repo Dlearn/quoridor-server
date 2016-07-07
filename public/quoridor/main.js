@@ -60,6 +60,7 @@ $( document ).ready(function () {
     socket.on("game:receiveState", function (data) {
         // Reassign gameState to the server issued state
         gameState = data;
+		console.log(gameState.currentStatus);
         
         // Print remaining wall dialogue
         if (gameState.activePlayer === Player.RED) 
@@ -67,16 +68,16 @@ $( document ).ready(function () {
         else 
             changeGameText(gameState.activePlayer + "'S TURN (" + gameState.bluRemainingWalls + " WALLS REMAINING)");
 
-        // Check if red or blu wins
-        if (gameState.redY === 0) {
-            changeGameText("RED WON! CLICK ANYWHERE TO RESTART."); 
-            gameState.currentStatus = GameStatus.RED_WON;
-        }
-        else if (gameState.bluY === ROWS-1) {
-            changeGameText("BLUE WON! CLICK ANYWHERE TO RESTART."); 
-            gameState.currentStatus = GameStatus.BLU_WON;
-        }
-        
+		// Check if red or blu wins
+		if (gameState.redY === 0) {
+				GameText("RED WON! CLICK ANYWHERE TO RESTART."); 
+			gameState.currentStatus = GameStatus.RED_WON;
+		}
+		else if (gameState.bluY === ROWS-1) {
+			changeGameText("BLUE WON! CLICK ANYWHERE TO RESTART."); 
+			gameState.currentStatus = GameStatus.BLU_WON;
+		}
+	
         // gameState object changed, redraw all
         redrawAll();
     });
@@ -416,7 +417,6 @@ function addWall(inCol, inRow, inDirection) {
         }
     } else // inDirection == Direction.VERTICAL
     {
-        console.log("We are here 1.");
         gameState.verticalWalls[inCol][inRow] = gameState.activePlayer;
 
         if (!isSolvable())
@@ -748,7 +748,6 @@ function hoverAt (inMousePosition) {
             drawO(move.col, move.row, gameState.activePlayer)
         }
     }
-    
 };
 
 function clickAt (inMousePosition) {
@@ -795,10 +794,9 @@ function updateGame () {
     // Swap active player
     if (gameState.activePlayer === Player.RED) gameState.activePlayer = Player.BLU;
     else gameState.activePlayer = Player.RED;
-
-    // Update valid movements
+	
+	// Update valid movements
     updateValidMovements();
-    redrawAll();
     
     socket.emit("game:sendState", gameState);
 };
