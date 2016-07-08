@@ -1,6 +1,6 @@
 {
   "name": "quoridor-server",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Full-stack Quoridor repository",
   "main": "server.js",
   "scripts": {
