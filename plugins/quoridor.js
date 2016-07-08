@@ -1,7 +1,7 @@
 "use strict";
 
 const redis = require("redis");
-const redisClient = redis.createClient();  // TODO: Configure this in production
+const redisClient = redis.createClient(process.env.REDIS_URL);  // TODO: Configure this in production
 const Statehood = require("statehood");
 const _ = require("lodash");
 
