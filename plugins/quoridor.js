@@ -1,7 +1,7 @@
 "use strict";
 
 const redis = require("redis");
-const redisClient = redis.createClient();  // TODO: Configure this in production
+const redisClient = redis.createClient(process.env.REDIS_URL);  // TODO: Configure this in production
 const Statehood = require("statehood");
 const _ = require("lodash");
 
@@ -31,6 +31,43 @@ function makeId (length) {
         id += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return id;
+};
+
+function initGameState () {
+    let horizontalWalls = [];
+    let verticalWalls = [];
+
+    for (let col = 0; col < (9-1); col++)
+    {
+        let temporaryWallArrayForHorizontal = [];
+        let temporaryWallArrayForVertical = [];
+        
+        for (let row = 0; row < (9-1); row++)
+        {
+            temporaryWallArrayForHorizontal[row] = "EMPTY";
+            temporaryWallArrayForVertical[row] = "EMPTY";
+        }
+        
+        horizontalWalls[col] = temporaryWallArrayForHorizontal;
+        verticalWalls[col] = temporaryWallArrayForVertical;
+    };
+
+    let gameState = {
+        redX : 4,
+        redY : 9-1,
+        redRemainingWalls : 10,
+        bluX : 4,
+        bluY : 0,
+        bluRemainingWalls : 10,
+        horizontalWalls : horizontalWalls,
+        verticalWalls : verticalWalls,
+        validMovementsRed : [[3,8],[4,7],[5,8]],
+        validMovementsBlu : [[3,0],[4,1],[5,0]],
+        currentStatus : "PLAYING",
+        activePlayer : "RED"
+    };
+    
+    return gameState;
 };
 
 const utils = require("../lib/utils.js");
@@ -93,13 +130,6 @@ exports.register = function (server, options, next) {
     
     // Set up socket.io init
     function socketHandler (socket) {
-        /*
-        Events the server currently listens for:
-        - sv:room => fired on connect event in the client
-        - sv:namechange => fired on namechange event in the client
-        - io:message => fired on message sent in the client
-        - disconnect => fired on client disconnection
-        */
         
         // Fires on connection event
         console.log("Someone has connected: " + socket.id);
@@ -221,41 +251,8 @@ exports.register = function (server, options, next) {
                 }
                 
                 if (!roomObject.gameState) {
-                    let horizontalWalls = [];
-                    let verticalWalls = [];
-
-                    for (let col = 0; col < (9-1); col++)
-                    {
-                        let temporaryWallArrayForHorizontal = [];
-                        let temporaryWallArrayForVertical = [];
-                        temporaryWallArrayForHorizontal.length = (9-1);
-                        temporaryWallArrayForVertical.length = (9-1);
-                        for (let row = 0; row < (9-1); row++)
-                        {
-                            temporaryWallArrayForHorizontal[row] = "EMPTY";
-                            temporaryWallArrayForVertical[row] = "EMPTY";
-                        }
-                        horizontalWalls[col] = temporaryWallArrayForHorizontal;
-                        verticalWalls[col] = temporaryWallArrayForVertical;
-                    }
-
-                    let gameState =
-                        {
-                            redX : 4,
-                            redY : 9-1,
-                            redRemainingWalls : 10,
-                            bluX : 4,
-                            bluY : 0,
-                            bluRemainingWalls : 10,
-                            horizontalWalls : horizontalWalls,
-                            verticalWalls : verticalWalls,
-                            validMovementsRed : [[3,8],[4,7],[5,8]],
-                            validMovementsBlu : [[3,0],[4,1],[5,0]],
-                            currentStatus : "PLAYING",
-                            activePlayer : "RED"
-                        };
                     
-                    roomObject.gameState = gameState;
+                    roomObject.gameState = initGameState();
                     
                     redisClient.set("quoridor:room:" + socket.roomId, JSON.stringify(roomObject), "PX", ROOM_EXPIRE_TIME, "XX", (err, val) => {
                         if (err) {
@@ -285,42 +282,8 @@ exports.register = function (server, options, next) {
                 }
                 
                 let roomObject = JSON.parse(val);
-                
-                let horizontalWalls = [];
-                let verticalWalls = [];
 
-                for (let col = 0; col < (9-1); col++)
-                {
-                    let temporaryWallArrayForHorizontal = [];
-                    let temporaryWallArrayForVertical = [];
-                    temporaryWallArrayForHorizontal.length = (9-1);
-                    temporaryWallArrayForVertical.length = (9-1);
-                    for (let row = 0; row < (9-1); row++)
-                    {
-                        temporaryWallArrayForHorizontal[row] = "EMPTY";
-                        temporaryWallArrayForVertical[row] = "EMPTY";
-                    }
-                    horizontalWalls[col] = temporaryWallArrayForHorizontal;
-                    verticalWalls[col] = temporaryWallArrayForVertical;
-                }
-
-                let gameState =
-                    {
-                        redX : 4,
-                        redY : 9-1,
-                        redRemainingWalls : 10,
-                        bluX : 4,
-                        bluY : 0,
-                        bluRemainingWalls : 10,
-                        horizontalWalls : horizontalWalls,
-                        verticalWalls : verticalWalls,
-                        validMovementsRed : [[3,8],[4,7],[5,8]],
-                        validMovementsBlu : [[3,0],[4,1],[5,0]],
-                        currentStatus : "PLAYING",
-                        activePlayer : "RED"
-                    };
-
-                roomObject.gameState = gameState;
+                roomObject.gameState = initGameState();
 
                 redisClient.set("quoridor:room:" + socket.roomId, JSON.stringify(roomObject), "PX", ROOM_EXPIRE_TIME, "XX", (err, val) => {
                     if (err) {

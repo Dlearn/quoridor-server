@@ -9,6 +9,10 @@
     "start": "npm run build-client && node server"
   },
   "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kitryn/quoridor-server.git"
+  },
   "license": "ISC",
   "dependencies": {
     "catbox-redis": "^2.0.2",
