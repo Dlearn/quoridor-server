@@ -1,7 +1,11 @@
 "use strict";
 
 const Hapi = require('hapi');
-const env = require('env2')('./.env');
+
+if (process.env.NODE_ENV !== "development") {
+    console.log("In dev environment, using environment variables from ./.env")
+    const env = require('env2')('./.env');
+};
 
 const server = new Hapi.Server({
     cache: {
