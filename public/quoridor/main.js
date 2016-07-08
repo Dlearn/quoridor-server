@@ -280,19 +280,28 @@ function drawGridLines () {
     context.stroke();
 };
 
-function drawO (inX, inY, inPlayerColor) {
+function drawO (inX, inY, inPlayerColor, inIsHover) {
     // Draws player circles
+    
+    // If we are hovering, draw a faded player token instead
+    // default inIsHover = false
+    var inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
+    
     var halfSectionSize = CELL_SIZE / 2;
     var centerX = inX * CELL_SIZE + halfSectionSize;
     var centerY = inY * CELL_SIZE + halfSectionSize;
     var radius = CIRCLE_RADIUS;
 
-    if (inPlayerColor === Player.RED) {
-        context.fillStyle = "red";
-    } else if (inPlayerColor === Player.BLU) {
-        context.fillStyle = "blue";
-    } else { 
-        return;
+    if (!inIsHover) {
+        context.strokeStyle = "black";
+        if (inPlayerColor === Player.RED) context.fillStyle = "red";
+        else if (inPlayerColor === Player.BLU) context.fillStyle = "blue";
+        else return;
+    }
+    else {
+        context.strokeStyle = "#b3b3b3";
+        if (inPlayerColor === Player.RED) context.fillStyle = "#ff9999";
+        else if (inPlayerColor === Player.BLU) context.fillStyle = "#9999ff";
     }
     
     context.beginPath();
@@ -300,19 +309,24 @@ function drawO (inX, inY, inPlayerColor) {
     
     context.fill();
     context.lineWidth = CIRCLE_LINEWIDTH;
-    context.strokeStyle = "black";
     context.stroke();
 };
 
 function drawWall (inX, inY, inPlayerColor, inDirection) {
     // Draws a wall on the canvas
     
-    if (inPlayerColor === Player.RED) {
-        context.strokeStyle = "red";
-    } else if (inPlayerColor === Player.BLU) {
-        context.strokeStyle = "blue";
-    } else {
-        return;
+    // If we are hovering, draw a faded player token instead
+    // default inIsHover = false
+    var inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
+    
+    if (!inIsHover) {
+        if (inPlayerColor === Player.RED) context.strokeStyle = "red";
+        else if (inPlayerColor === Player.BLU) context.strokeStyle = "blue";
+        else return;
+    }
+    else {
+        if (inPlayerColor === Player.RED) context.strokeStyle = "#ff9999";
+        else if (inPlayerColor === Player.BLU) context.strokeStyle = "#9999ff";
     }
     
     context.lineWidth = WALL_STROKE_WIDTH;
@@ -773,14 +787,13 @@ function hoverAt (inMousePosition) {
         return;
     }
     
-    clearAll();
     redrawAll();
     
     var move = selectMove(inMousePosition);
     
     if (move.type === "wall") {
         if (validateWall(move.col, move.row, move.dir)) {
-            drawWall(move.col, move.row, gameState.activePlayer, move.dir)
+            drawWall(move.col, move.row, gameState.activePlayer, move.dir, true)
         } else {
             // changeGameText("No walls left or wall clash!");
         }
@@ -789,7 +802,7 @@ function hoverAt (inMousePosition) {
     
     if (move.type === "piece") {
         if (validateMove(move.col, move.row)) {
-            drawO(move.col, move.row, gameState.activePlayer)
+            drawO(move.col, move.row, gameState.activePlayer, true)
         }
     }
 };
@@ -800,7 +813,6 @@ function clickAt (inMousePosition) {
 		return;
     }
     
-    clearAll();
     redrawAll();
     
     var move = selectMove(inMousePosition);
