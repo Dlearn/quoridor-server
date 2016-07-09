@@ -2,7 +2,7 @@
 
 const Hapi = require('hapi');
 
-if (process.env.NODE_ENV !== "development") {
+if (!process.env.COOKIE_SECRET) {
     console.log("In dev environment, using environment variables from ./.env")
     const env = require('env2')('./.env');
 };
@@ -53,7 +53,7 @@ server.register(require("inert"), (err) => {
 // Register yar for cookie session support, using catbox-redis as a cache store
 const cookieOptions = {
     password: process.env.COOKIE_SECRET,
-    isSecure: process.env.NODE_ENV !== 'development', // This is set to true if process.env.NODE_ENV is set to production or staging. Required false if using HTTP 
+    isSecure: false, // Due to deployment on Heroku, this is set to false 
     isHttpOnly: true,
     ttl: null // Cookies are deleted when the browser is closed
 };

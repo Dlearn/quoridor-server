@@ -5,8 +5,8 @@ var Chat = require("../chat.js");
 
 // On page ready
 $( document ).ready(function () {
-    // Init socket on quoridor namespace
-    var socket = io("/quoridor");
+    // Init socket on socket-qgame namespace
+    var socket = io("/socket-qgame");
     
     // Init quoridor
     QuoridorApp.init(socket);
