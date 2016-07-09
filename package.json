@@ -15,6 +15,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "browserify": "^13.0.1",
     "catbox-redis": "^2.0.2",
     "env2": "^2.1.0",
     "handlebars": "^4.0.5",
