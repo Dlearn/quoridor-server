@@ -89,13 +89,13 @@ exports.register = function (server, options, next) {
         expiresIn: 7 * 24 * 60 * 60 * 1000, // Expires in 7 days, same as the yar session config
     });
     
-    // Init socket.io namespace "/quoridor"
-    const io = require("socket.io")(server.listener).of("/quoridor");
+    // Init socket.io namespace "/socket-qgame"
+    const io = require("socket.io")(server.listener).of("/socket-qgame");
     
     // On socket connection, decorate socket object with fields
     io.use(function (socket, next) {
         
-        // console.log("New socket connection!");
+        console.log("New socket connection!");
         
         let sessionCookie = utils.getCookie(socket.request.headers.cookie, options.sessions.name);
         
