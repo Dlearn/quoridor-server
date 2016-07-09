@@ -27,7 +27,9 @@ The only configuration file as of now is a `.env` in the root folder. Currently,
 export NODE_ENV=development
 export PORT=3000
 export COOKIE_SECRET=bobshoes
+export REDIS_URL=redis://localhost:6379
 ```
+Note: COOKIE_SECRET must be at least 32 characters long.
 
 #### 5. Start the server
 ```sh

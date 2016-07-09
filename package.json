@@ -1,14 +1,18 @@
 {
   "name": "quoridor-server",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Full-stack Quoridor repository",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-client": "browserify public/quoridor/main.js > public/quoridor/bundle.js; browserify public/quoridor-home/main.js > public/quoridor-home/bundle.js",
-    "start": "npm run build-client; node server"
+    "build-client": "browserify public/quoridor/main.js > public/quoridor/bundle.js && browserify public/quoridor-home/main.js > public/quoridor-home/bundle.js",
+    "start": "npm run build-client && node server"
   },
   "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kitryn/quoridor-server.git"
+  },
   "license": "ISC",
   "dependencies": {
     "catbox-redis": "^2.0.2",
