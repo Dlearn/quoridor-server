@@ -81,6 +81,7 @@ exports.register = function (server, options, next) {
     cookieOptions.encoding = options.sessions.encoding;
     const def = new Statehood.Definitions(cookieOptions);
     
+    
     // Init cache connection
     const cache = server.cache({
         cache: "session",
@@ -88,6 +89,59 @@ exports.register = function (server, options, next) {
         shared: true,
         expiresIn: 7 * 24 * 60 * 60 * 1000, // Expires in 7 days, same as the yar session config
     });
+    
+    
+    // Socket.io helper functions requiring the server object
+    function emitPlayers (socket, connections) {
+        
+        let playerRed = _.findKey(connections, (o) => {return o === "red"});
+        let playerBlue = _.findKey(connections, (o) => {return o === "blue"});
+
+        // Async query cache to get red's name and emit it. If not exists, clear player box.
+        if (playerRed) {
+            cache.get(playerRed, (err, val) => {
+                if (err || !val) {
+                    return;
+                }
+
+                let payload = {};
+                payload["red"] = val.name || "Anonymous";
+
+                emitChangedPlayer(socket, payload);
+            })
+        } else {
+            emitRemoveColourPlayer(socket, "red");
+        };
+
+        // Async query cache to get blue's name and emit it. If not exists, clear player box.
+        if (playerBlue) {
+            cache.get(playerBlue, (err, val) => {
+                if (err || !val) {
+                    return;
+                }
+
+                let payload = {};
+                payload["blue"] = val.name || "Anonymous";
+
+                emitChangedPlayer(socket, payload);
+            })
+        } else {
+            emitRemoveColourPlayer(socket, "blue");
+        };
+
+    };
+
+    function emitChangedPlayer (socket, data) {
+        socket.nsp.to(socket.roomId).emit("game:cli:changedPlayer", data);
+    };
+
+    function emitRemoveColourPlayer (socket, data) {
+        socket.nsp.to(socket.roomId).emit("game:cli:removePlayer", data);
+    };
+    
+    function emitBecomePlayer (socket, colour) {
+        socket.emit("game:cli:becomePlayer", colour);
+    };
     
     // Init socket.io namespace "/socket-qgame"
     const io = require("socket.io")(server.listener).of("/socket-qgame");
@@ -145,65 +199,6 @@ exports.register = function (server, options, next) {
         // Fires on connection event
         // console.log("Someone has connected: " + socket.id);
         
-        // Fires on client page load with room parameter
-        // DEPRECIATED
-        socket.on("sv:room", function (msg) {
-            // Room already exists in quoridor:room:{} if you make it here due to route validation
-            /*
-            return socket.join(msg, (err) => {
-                
-                console.log("New client joining room at: " + msg);
-                // console.log("Client's active rooms: " + JSON.stringify(socket.rooms));
-                socket.roomId = msg; // Stores current room on the socket object
-                
-                // Add the connection to the RoomObject? And send recent chat data to the client
-                
-                redisClient.multi()
-                    .get("quoridor:room:" + msg)
-                    .lrange("quoridor:chat:" + msg, 0, -1)
-                    .exec(function (err, replies) {
-                        
-                        if (err) {
-                            throw err;
-                        }
-                        
-                        
-                        
-                        // Handling the results of redis.lrange (chat)
-                        let output = replies[1] || [];
-                        socket.emit("chat:recent", output);
-                        socket.emit("sv:updatename", socket.q_name);
-                    
-                        // Handling the results of redis.get
-                        let getResult = replies[0] || null;
-                        // band aid fix
-                        if (!getResult) {
-                            return socket.emit("sv:redirect", {redirect: true});
-                        }
-                        let roomObject = JSON.parse(getResult);
-                        let q_sid = socket.q_sid;
-                        
-                        roomObject.connections[q_sid] = roomObject.connections[q_sid] || null; // q_sid's presence in the connection object is enough. If it already exists, dont change it
-                        
-                        redisClient.set("quoridor:room:" + msg, JSON.stringify(roomObject), "PX", ROOM_EXPIRE_TIME, "XX", (err, val) => {
-                            if (err) {
-                                throw err;
-                            }
-                            
-                            // Resets the room expiry back to 30 minutes
-                            // XX means only set the key if it already exists
-                            if (!val) {
-                                console.warn("Warning! Attempt to join room that does not exist in redis???")
-                                // how to handle wat
-                            }
-                        });
-                    
-                    } // End of exec callback
-                ); // End of exec
-            }) // End of socket.join
-            */
-        });
-        
         // Fires on name change
         socket.on("chat:sv:namechange", function (msg) {
             
@@ -251,13 +246,13 @@ exports.register = function (server, options, next) {
                 .exec(function (err, replies) {
                     // replies is an array of redis responses
                     // Emit the new message to all connected sockets IN THE ROOM
-                    io.to(socket.roomId).emit("chat:cli:message", output)
+                    io.to(socket.roomId).emit("chat:cli:message", output);
             });
             // Currently, room expires after 10 minutes
             // TODO: Implement a way to destroy array when last client leaves room
         });
         
-        // Fires on game:refreshState (connection)
+        // Fires on connection
         socket.on("game:sv:refreshState", function () {
             
             console.log("Socket at " + socket.roomId + " requesting gameState");
@@ -293,12 +288,16 @@ exports.register = function (server, options, next) {
                     });
                 };
                 
+                // Emit current players
+                emitPlayers(socket, roomObject.connections);
+                
+                // Emit current gameState
                 socket.emit("game:cli:receiveState", roomObject.gameState);
             })
         
         });
         
-        // Fires on game:restartGame (remake game)
+        // Fires on remake game
         socket.on("game:sv:restartGame", function () {
             
             console.log("Remake Game @ socket.roomId: " + socket.roomId);
@@ -354,6 +353,52 @@ exports.register = function (server, options, next) {
             
         });
         
+        // Player joins a color?
+        socket.on("game:sv:pickColour", function (msg) {
+            console.log("Player requesting to join " + msg);
+            redisClient.get("quoridor:room:" + socket.roomId, (err, val) => {
+                if (err) {
+                    throw err;
+                }
+                
+                let roomObject = JSON.parse(val);
+                let q_sid = socket.q_sid;
+                
+                let playerExists = _.findKey(roomObject.connections, (o) => {return o === msg});
+                
+                if (!playerExists) {
+                    // nobody is currently assigned colour <msg>; assign the socket to that colour
+                    console.log("Assigning player to colour " + msg);
+                    roomObject.connections[q_sid] = msg;
+                    
+                    // Serialize the modified object, then emit to all connected clients. Only serialize if !playerExists (therefore it changed)
+                    redisClient.set("quoridor:room:" + socket.roomId, JSON.stringify(roomObject), "PX", ROOM_EXPIRE_TIME, "XX",(err, val) => {
+                        if (err) {
+                            throw err;
+                        }
+
+                        // Resets the room expiry back to 30 minutes
+                        // XX means only set the key if it already exists
+                        if (!val) {
+                            console.warn("Warning! Attempt modify roomObject that does not exist??")
+                            // how to handle wat
+                            return;
+                        }
+
+                        // roomObject serialized; emit to connected clients changed player
+                        /*
+                        let payload = {};
+                        payload[msg] = socket.q_name;
+                        emitChangedPlayer(socket, payload);
+                        */
+                        emitPlayers(socket, roomObject.connections);
+                        emitBecomePlayer(socket, msg);
+                    });
+
+                } // end of if (!playerExists)
+            }) // end of redisClient.get
+        });
+        
         // Fires on disconnect??
         socket.on("disconnect", function () {
             
@@ -376,6 +421,13 @@ exports.register = function (server, options, next) {
                     val = val || {}
                     let roomObject = JSON.parse(val);
                     let q_sid = socket.q_sid;
+                    
+                    if (roomObject.connections[q_sid]) {
+                        // entry is not null, must be either "red" or "blue"
+                        // Emit an event that clears the button from the client
+                        emitRemoveColourPlayer(socket, roomObject.connections[q_sid]);
+                    }
+                    
                     delete roomObject.connections[q_sid];
                     
                     // Persist the object back
@@ -389,6 +441,7 @@ exports.register = function (server, options, next) {
                         if (!val) {
                             console.warn("Warning! Attempt modify roomObject that does not exist??")
                             // how to handle wat
+                            return;
                         }
                     });
                 });

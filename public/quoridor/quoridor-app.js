@@ -1,3 +1,7 @@
+var utils = require("../utils.js");
+var escapeHTML = utils.escapeHTML;
+var unescapeHTML = utils.unescapeHTML;
+
 // ------ GAME CONSTANTS ------
 var socket;
 
@@ -12,7 +16,7 @@ var Player = { RED: 'RED', BLU: 'BLUE', EMPTY: 'EMPTY'};
 var GameStatus = { PLAYING: 'PLAYING', RED_WON: 'RED_WON', BLU_WON: 'BLU_WON'};
 
 var gameState = {};
-
+var amPlayer = "";
 
 // ------ FORMATTING CONSTANTS ------
 
@@ -763,17 +767,90 @@ exports.init = function (io_socket) {
         redrawAll();
     });
     
+    // Receiving player colour name from server
+    socket.on("game:cli:changedPlayer", function (data) {
+        var playerButton;
+        var name;
+        
+        if (data.red) {
+            playerButton = $("#selectRed");
+            name = data.red;
+        };
+        
+        if (data.blue) {
+            playerButton = $("#selectBlue");
+            name = data.blue;
+        };
+        
+        // assumes data only contains one colour!!
+        if (playerButton) {
+            playerButton.addClass("disabled");
+            playerButton.html(escapeHTML(name));
+        };
+    });
+    
+    // Receiving colour player removal 
+    socket.on("game:cli:removePlayer", function (data) {
+        if (data === amPlayer) {
+            // Unassign your player colour if it matches the removed player
+            amPlayer = "";
+        };
+        
+        var playerButton;
+        
+        if (data === "red") {
+            playerButton = $("#selectRed");
+        };
+        
+        if (data === "blue") {
+            playerButton = $("#selectBlue");
+        };
+        
+        var message = "Click here to join " + data.charAt(0).toUpperCase() + data.slice(1);
+        
+        playerButton.html(escapeHTML(message));
+        playerButton.removeClass("disabled");
+    })
+    
+    // Become the colour dictated by server
+    socket.on("game:cli:becomePlayer", function (colour) {
+        amPlayer = colour;
+    });
+    
     // ------ Init mouse listener events ------
     // Mouse hover methods
     canvas.addEventListener('mousemove', function(event) {
+        if (amPlayer.toUpperCase() !== gameState.activePlayer) {
+            return;
+        }
+        
         var mousePosition = getCanvasMousePosition(event);
         hoverAt(mousePosition);
     });
 
     // Mouse click methods
     canvas.addEventListener('click', function (event) {
+        if (amPlayer.toUpperCase() !== gameState.activePlayer) {
+            return;
+        }
+        
         var mousePosition = getCanvasMousePosition(event);
         clickAt(mousePosition);
     });
 
+    // Methods to select a colour
+    function selectColour (element, colour) {
+        if ($(element).hasClass("disabled")) {
+            return;
+        }
+        socket.emit("game:sv:pickColour", colour);
+    };
+    
+    $("#selectRed").click(function () {
+        selectColour(this, "red");
+    });
+    
+    $("#selectBlue").click(function () {
+        selectColour(this, "blue");
+    });
 };

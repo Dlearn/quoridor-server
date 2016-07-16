@@ -1,20 +1,8 @@
 var $ = require("jquery");
 var socket;
-
-// Escaping functions
-function escapeHTML (str) {
-    var div = document.createElement("div");
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-};
-
-function unescapeHTML (escapedStr) {
-    // Unsafe on untrusted strings, use only on trusted
-    var div = document.createElement("div");
-    div.innerHTML = escapedStr;
-    var child = div.childNodes[0];
-    return child ? child.nodeValue : "";
-};
+var utils = require("./utils.js");
+var escapeHTML = utils.escapeHTML;
+var unescapeHTML = utils.unescapeHTML;
 
 function scrollBottom () {
     $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
