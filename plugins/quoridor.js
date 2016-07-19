@@ -202,6 +202,10 @@ exports.register = function (server, options, next) {
         // Fires on name change
         socket.on("chat:sv:namechange", function (msg) {
             
+            if (msg.length > 12) {
+                return false;
+            }
+            
             console.log("User changed name to: " + msg);
             socket.q_name = msg;
             

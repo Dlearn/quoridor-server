@@ -65,6 +65,11 @@ exports.init = function (io_socket) {
             return false;
         }
         
+        // Do not emit if length > 12
+        if ($("#nameInput").val().length > 12) {
+            return false;
+        }
+        
         // Send the message to the server
         socket.emit("chat:sv:namechange", $("#nameInput").val());
         // Close the modal
