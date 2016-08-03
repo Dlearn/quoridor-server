@@ -1,3 +1,7 @@
+var utils = require("../utils.js");
+var escapeHTML = utils.escapeHTML;
+var unescapeHTML = utils.unescapeHTML;
+
 // ------ GAME CONSTANTS ------
 var socket;
 
@@ -12,7 +16,7 @@ var Player = { RED: 'RED', BLU: 'BLUE', EMPTY: 'EMPTY'};
 var GameStatus = { PLAYING: 'PLAYING', RED_WON: 'RED_WON', BLU_WON: 'BLU_WON'};
 
 var gameState = {};
-
+var amPlayer = "";
 
 // ------ FORMATTING CONSTANTS ------
 
@@ -31,11 +35,11 @@ var GRIDLINE_COLOR = "#ddd";
 
 // Wall drawing constants
 var WALL_STROKE_WIDTH = 4; // wall stroke width
-var WALL_PADDING = 4; // wall padding
+var WALL_PADDING = CELL_SIZE / 10; // wall padding
 
 // Notation constants
-var NOTATION_PADDING = 35;
-var TEXT_OFFSET_X = 55, TEXT_OFFSET_Y = 25;
+var NOTATION_PADDING = 30;
+var TEXT_OFFSET_X = 30, TEXT_OFFSET_Y = 25;
 
 
 // titleText canvas contexts
@@ -51,7 +55,7 @@ titleTextContext.fillText("QUORIDOR", NOTATION_PADDING + CANVAS_WIDTH/2 - 80, TE
 // TOP SPACE FOR BLUE WALLS
 var topNotation = document.getElementById('top-notation');
 topNotation.width = 2 * NOTATION_PADDING + CANVAS_WIDTH;
-topNotation.height = 2 * CELL_SIZE;
+topNotation.height = 2 * CELL_SIZE - 6.5 * WALL_PADDING;
 
 var topContext = topNotation.getContext('2d');
 drawBluRemainingWalls(10);
@@ -70,7 +74,7 @@ for (var i=0; i < ROWS; i++) leftContext.fillText(9-i, 10, (i + 0.5) * CELL_SIZE
 // BOT SPACE FOR TEXT AND RED WALLS
 var botNotation = document.getElementById('bot-notation');
 botNotation.width = 2 * NOTATION_PADDING + CANVAS_WIDTH;
-botNotation.height = 2 * CELL_SIZE;
+botNotation.height = 2 * CELL_SIZE - 6.5 * WALL_PADDING;
 
 var botContext = botNotation.getContext('2d');
 drawRedRemainingWalls(10);
@@ -82,7 +86,7 @@ gameText.width = NOTATION_PADDING + CANVAS_WIDTH;
 gameText.height = NOTATION_PADDING;
 
 var gameTextContext = gameText.getContext('2d');
-gameTextContext.font = "22px Helvetica";
+gameTextContext.font = "24px Helvetica";
 
 
 // Main board canvas contexts
@@ -91,6 +95,8 @@ canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
 
 var context = canvas.getContext("2d");
+
+//var btn_undo = document.getElementById('btn_undo');
 
 
 // ------ HELPER FUNCTIONS ------ //
@@ -152,7 +158,7 @@ function drawO (inX, inY, inPlayerColor, inIsHover) {
     
     // If we are hovering, draw a faded player token instead
     // default inIsHover = false
-    var inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
+    inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
     
     var halfSectionSize = CELL_SIZE / 2;
     var centerX = inX * CELL_SIZE + halfSectionSize;
@@ -179,12 +185,12 @@ function drawO (inX, inY, inPlayerColor, inIsHover) {
     context.stroke();
 };
 
-function drawWall (inX, inY, inPlayerColor, inDirection) {
+function drawWall (inX, inY, inPlayerColor, inDirection, inIsHover) {
     // Draws a wall on the canvas
     
     // If we are hovering, draw a faded player token instead
     // default inIsHover = false
-    var inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
+    inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
     
     if (!inIsHover) {
         if (inPlayerColor === Player.RED) context.strokeStyle = "red";
@@ -198,7 +204,7 @@ function drawWall (inX, inY, inPlayerColor, inDirection) {
     
     context.lineWidth = WALL_STROKE_WIDTH;
     
-    context.lineCap = 'butt';
+    context.lineCap = 'round';
     context.beginPath();
 
     if (inDirection === Direction.HORIZONTAL) {
@@ -222,8 +228,19 @@ function drawWall (inX, inY, inPlayerColor, inDirection) {
 };
 
 function redrawAll () {
-    // Redraws the board according to the current gameState
+    // Destroy everything on the gameboard first. 
     clearAll();
+    
+    // Color the objective row the correct color
+    if (gameState.activePlayer === Player.RED) {
+        context.fillStyle = "#ff8080";
+        context.fillRect(0, 0, CANVAS_WIDTH, CELL_SIZE);
+    }
+    else {
+        context.fillStyle = "#8080ff";
+        context.fillRect(0, CANVAS_HEIGHT - CELL_SIZE, CANVAS_WIDTH, CELL_SIZE);
+    }
+    
     drawGridLines();
     drawO(gameState.redX, gameState.redY, Player.RED);
     drawO(gameState.bluX, gameState.bluY, Player.BLU);
@@ -235,19 +252,23 @@ function redrawAll () {
             drawWall(col, row, gameState.verticalWalls[col][row], Direction.VERTICAL);  
         }
     }
+    
+    drawBluRemainingWalls(gameState.bluRemainingWalls);
+    drawRedRemainingWalls(gameState.redRemainingWalls);
 };
 
 function drawBluRemainingWalls(inWallsLeft) {
     topContext.clearRect(0 ,0, 2 * NOTATION_PADDING + CANVAS_WIDTH, 2 * CELL_SIZE);
-    topContext.lineWidth = WALL_STROKE_WIDTH;
+    
+    topContext.lineWidth = WALL_STROKE_WIDTH * .75;
     topContext.strokeStyle = "blue";
-    topContext.lineCap = 'butt';
+    topContext.lineCap = "round";
 
     topContext.beginPath();
     for(var i=0; i < inWallsLeft; i++) {
         var x = NOTATION_PADDING + 4 + i * CELL_SIZE;
-        var y1 = WALL_PADDING;
-        var y2 = 2 * CELL_SIZE - WALL_PADDING;
+        var y1 = WALL_PADDING / 2;
+        var y2 = 2 * CELL_SIZE - 6.5 * WALL_PADDING;
         topContext.moveTo(x, y1);
         topContext.lineTo(x, y2);
     }
@@ -257,21 +278,20 @@ function drawBluRemainingWalls(inWallsLeft) {
 function drawRedRemainingWalls(inWallsLeft) {
     botContext.clearRect(0 ,0, 2 * NOTATION_PADDING + CANVAS_WIDTH, 2 * CELL_SIZE);
     
-    botContext.font = "26px Arial";
-    for (var i=0; i < ROWS; i++) {
-        botContext.fillText(String.fromCharCode(65+i), 
-                            NOTATION_PADDING + (i + 0.5) * CELL_SIZE - 10, 25);
-    }
+    // Creating the bot latter notation
+    botContext.font = "32px Arial";
+    for (var i=0; i < ROWS; i++) 
+        botContext.fillText(String.fromCharCode(65+i), NOTATION_PADDING + (i + 0.5) * CELL_SIZE - 10, 30);
     
-    botContext.lineWidth = WALL_STROKE_WIDTH;
+    botContext.lineWidth = WALL_STROKE_WIDTH * .75;
     botContext.strokeStyle = "red";
-    botContext.lineCap = 'butt';
+    botContext.lineCap = "round";
 
     botContext.beginPath();
     for(var i=0; i < inWallsLeft; i++) {
         var x = NOTATION_PADDING + 4 + i * CELL_SIZE;
-        var y1 = WALL_PADDING;
-        var y2 = 2 * CELL_SIZE - WALL_PADDING;
+        var y1 = WALL_PADDING / 2;
+        var y2 = 2 * CELL_SIZE - 6.5 * WALL_PADDING;
         botContext.moveTo(x, y1);
         botContext.lineTo(x, y2);
     }
@@ -347,16 +367,44 @@ function addWall(inCol, inRow, inDirection) {
         }
     }
 
-    if (gameState.activePlayer === Player.RED) {
-        gameState.redRemainingWalls--;
-        drawRedRemainingWalls(gameState.redRemainingWalls);
+    if (gameState.activePlayer === Player.RED) gameState.redRemainingWalls--;
+    else if (gameState.activePlayer === Player.BLU) gameState.bluRemainingWalls--;
+    return true;
+};
+
+/*
+function removeWall (inCol, inRow, inDirection) {
+    if (inDirection === Direction.HORIZONTAL)
+    {
+        var colorId = gameState.horizontalWalls[inCol][inRow];
+        if (colorId === Player.RED)
+        {
+            gameState.horizontalWalls[inCol][inRow] = Player.EMPTY;
+            gameState.redRemainingWalls++;
+        } else if (colorId === Player.BLU)
+        {
+            gameState.horizontalWalls[inCol][inRow] = Player.EMPTY;
+            gameState.bluRemainingWalls++;
+        }
+        else return false; // There was no wall there. Removal failed
     }
-    if (gameState.activePlayer === Player.BLU) {
-        gameState.bluRemainingWalls--;
-        drawBluRemainingWalls(gameState.bluRemainingWalls);
+    else // inDirection == Direction.VERTICAL
+    {
+        var colorId = gameState.verticalWalls[inCol][inRow];
+        if (colorId === Player.RED)
+        {
+            gameState.verticalWalls[inCol][inRow] = Player.EMPTY;
+            gameState.redRemainingWalls++;
+        } else if (colorId === Player.BLU)
+        {
+            gameState.verticalWalls[inCol][inRow] = Player.EMPTY;
+            gameState.bluRemainingWalls++;
+        }
+        else return false; // There was no wall there. Removal failed
     }
     return true;
 };
+*/
 
 function isNextToWallOrBorder (inCol, inRow, inUDLR) {
     if (gameState.activePlayer === Player.EMPTY) throw Error("Player cannot be EMPTY");
@@ -662,9 +710,7 @@ function hoverAt (inMousePosition) {
     if (move.type === "wall") {
         if (validateWall(move.col, move.row, move.dir)) {
             drawWall(move.col, move.row, gameState.activePlayer, move.dir, true)
-        } else {
-            // changeGameText("No walls left or wall clash!");
-        }
+        } // No else statement because it won't even create a hover predictor
         return;
     }
     
@@ -691,9 +737,7 @@ function clickAt (inMousePosition) {
             if (success) {
                 updateGame();
             }
-        } else {
-            // changeGameText("No walls left or wall clash!");
-        }
+        } // No else statement because it won't even create a hover predictor
         return;
     }
     
@@ -763,17 +807,95 @@ exports.init = function (io_socket) {
         redrawAll();
     });
     
+    // Receiving player colour name from server
+    socket.on("game:cli:changedPlayer", function (data) {
+        var playerButton;
+        var name;
+        
+        if (data.red) {
+            playerButton = $("#selectRed");
+            name = data.red;
+        };
+        
+        if (data.blue) {
+            playerButton = $("#selectBlue");
+            name = data.blue;
+        };
+        
+        // assumes data only contains one colour!!
+        if (playerButton) {
+            playerButton.addClass("disabled");
+            playerButton.html(escapeHTML(name));
+        };
+    });
+    
+    // Receiving colour player removal 
+    socket.on("game:cli:removePlayer", function (data) {
+        if (data === amPlayer) {
+            // Unassign your player colour if it matches the removed player
+            amPlayer = "";
+        };
+        
+        var playerButton;
+        
+        if (data === "red") {
+            playerButton = $("#selectRed");
+        };
+        
+        if (data === "blue") {
+            playerButton = $("#selectBlue");
+        };
+        
+        var message = "Click here to join " + data.charAt(0).toUpperCase() + data.slice(1);
+        
+        playerButton.html(escapeHTML(message));
+        playerButton.removeClass("disabled");
+    })
+    
+    // Become the colour dictated by server
+    socket.on("game:cli:becomePlayer", function (colour) {
+        amPlayer = colour;
+    });
+    
     // ------ Init mouse listener events ------
     // Mouse hover methods
     canvas.addEventListener('mousemove', function(event) {
+        if (amPlayer.toUpperCase() !== gameState.activePlayer) {
+            return;
+        }
+        
         var mousePosition = getCanvasMousePosition(event);
         hoverAt(mousePosition);
     });
 
     // Mouse click methods
     canvas.addEventListener('click', function (event) {
+        if (amPlayer.toUpperCase() !== gameState.activePlayer) {
+            return;
+        }
+        
         var mousePosition = getCanvasMousePosition(event);
         clickAt(mousePosition);
     });
+    
+    /*btn_undo.addEventListener('click', function() {
+        removeWall(0,0,Direction.HORIZONTAL);
+        redrawAll();
+    });*/
 
+    // Methods to select a colour
+    function selectColour (element, colour) {
+        if ($(element).hasClass("disabled")) {
+            return;
+        }
+        socket.emit("game:sv:pickColour", colour);
+    };
+    
+    $("#selectRed").click(function () {
+        selectColour(this, "red");
+    });
+    
+    $("#selectBlue").click(function () {
+        selectColour(this, "blue");
+    });
 };

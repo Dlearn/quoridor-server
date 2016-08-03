@@ -1,20 +1,8 @@
 var $ = require("jquery");
 var socket;
-
-// Escaping functions
-function escapeHTML (str) {
-    var div = document.createElement("div");
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-};
-
-function unescapeHTML (escapedStr) {
-    // Unsafe on untrusted strings, use only on trusted
-    var div = document.createElement("div");
-    div.innerHTML = escapedStr;
-    var child = div.childNodes[0];
-    return child ? child.nodeValue : "";
-};
+var utils = require("./utils.js");
+var escapeHTML = utils.escapeHTML;
+var unescapeHTML = utils.unescapeHTML;
 
 function scrollBottom () {
     $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
@@ -74,6 +62,11 @@ exports.init = function (io_socket) {
     $("#changeNameForm").submit(function () {
         // Do not emit if input is empty
         if ($("#nameInput").val().match(/^[\s]*$/) !== null) {
+            return false;
+        }
+        
+        // Do not emit if length > 12
+        if ($("#nameInput").val().length > 12) {
             return false;
         }
         
