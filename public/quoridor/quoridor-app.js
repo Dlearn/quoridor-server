@@ -96,6 +96,8 @@ canvas.height = CANVAS_HEIGHT;
 
 var context = canvas.getContext("2d");
 
+//var btn_undo = document.getElementById('btn_undo');
+
 
 // ------ HELPER FUNCTIONS ------ //
 
@@ -370,6 +372,7 @@ function addWall(inCol, inRow, inDirection) {
     return true;
 };
 
+/*
 function removeWall (inCol, inRow, inDirection) {
     if (inDirection === Direction.HORIZONTAL)
     {
@@ -401,6 +404,7 @@ function removeWall (inCol, inRow, inDirection) {
     }
     return true;
 };
+*/
 
 function isNextToWallOrBorder (inCol, inRow, inUDLR) {
     if (gameState.activePlayer === Player.EMPTY) throw Error("Player cannot be EMPTY");
@@ -873,6 +877,11 @@ exports.init = function (io_socket) {
         var mousePosition = getCanvasMousePosition(event);
         clickAt(mousePosition);
     });
+    
+    /*btn_undo.addEventListener('click', function() {
+        removeWall(0,0,Direction.HORIZONTAL);
+        redrawAll();
+    });*/
 
     // Methods to select a colour
     function selectColour (element, colour) {

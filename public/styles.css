@@ -50,6 +50,7 @@ html, body {
     position: relative;
 }
 
+/*
 .chat-scroll {
     overflow: scroll;
     top: 0;
@@ -58,13 +59,14 @@ html, body {
     right: 0;
     position: absolute;
 }
+*/
 
 .selector {
     position: relative;
     bottom: 30px;
 
     display: inline-block;
-    width: 200px;
+    width: 175px;
     height: 40px;
     padding: 8px 10px;
 
