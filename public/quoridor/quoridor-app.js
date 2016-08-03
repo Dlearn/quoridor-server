@@ -39,7 +39,7 @@ var WALL_PADDING = CELL_SIZE / 10; // wall padding
 
 // Notation constants
 var NOTATION_PADDING = 30;
-var TEXT_OFFSET_X = 55, TEXT_OFFSET_Y = 25;
+var TEXT_OFFSET_X = 30, TEXT_OFFSET_Y = 25;
 
 
 // titleText canvas contexts
@@ -86,7 +86,7 @@ gameText.width = NOTATION_PADDING + CANVAS_WIDTH;
 gameText.height = NOTATION_PADDING;
 
 var gameTextContext = gameText.getContext('2d');
-gameTextContext.font = "22px Helvetica";
+gameTextContext.font = "24px Helvetica";
 
 
 // Main board canvas contexts
@@ -156,7 +156,7 @@ function drawO (inX, inY, inPlayerColor, inIsHover) {
     
     // If we are hovering, draw a faded player token instead
     // default inIsHover = false
-    var inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
+    inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
     
     var halfSectionSize = CELL_SIZE / 2;
     var centerX = inX * CELL_SIZE + halfSectionSize;
@@ -188,7 +188,7 @@ function drawWall (inX, inY, inPlayerColor, inDirection, inIsHover) {
     
     // If we are hovering, draw a faded player token instead
     // default inIsHover = false
-    var inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
+    inIsHover = typeof inIsHover !== 'undefined' ? inIsHover : false;
     
     if (!inIsHover) {
         if (inPlayerColor === Player.RED) context.strokeStyle = "red";
