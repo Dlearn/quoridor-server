@@ -846,7 +846,7 @@ exports.init = function (io_socket) {
             playerButton = $("#selectBlue");
         };
         
-        var message = "Click here to join " + data.charAt(0).toUpperCase() + data.slice(1);
+        var message = "Join " + data.charAt(0).toUpperCase() + data.slice(1);
         
         playerButton.html(escapeHTML(message));
         playerButton.removeClass("disabled");
