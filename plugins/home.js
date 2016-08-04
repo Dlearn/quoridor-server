@@ -5,7 +5,7 @@ exports.register = function (server, options, next) {
         method: "GET",
         path: "/",
         handler: function (request, reply) {
-            reply.view("index", {title: "wat", footer: "<script>alert('!!')</script>"});
+            reply.view("index", {title: "Welcome! Please select a game from the bar above.", footer: "<script>alert('!!')</script>"});
         }
     });
 
