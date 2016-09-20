@@ -12,6 +12,10 @@ html, body {
     max-height: 40px;
 }
 
+.navbar-nav {
+    font-size: 18px;
+}
+
 .col-max {
     max-width: 200px;
 }
@@ -89,6 +93,12 @@ html, body {
     right: 149px;
     border-color: dodgerblue;
     background: #9999ff;
+}
+
+.quick-rules {
+    position: relative;
+    bottom: 350px;
+    left: 495px;
 }
 
 input#btn_undo {

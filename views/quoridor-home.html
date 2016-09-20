@@ -1,4 +1,18 @@
 <div class="container">
+    <div>
+        <h2 style="margin-bottom: 1cm">Welcome to Quoridor-Online, where you can play Quoridor with your friends. </h2>
+        <h4><b>Create a room</b> if you are hosting, or <b>Join a room</b> if a friend is hosting. </h4>
+        <div style="font-size:18px; margin-bottom: .7cm; margin-left: .5cm; line-height: 1.4em">
+            <span style="font-weight:bold; text-decoration:underline; font-size:20px">
+                Quick Rules
+            </span>
+            <ul>
+                <li>Objective: Get to the other side</li>
+                <li>On your turn: Move your token or build a wall</li>
+                <li>You are not allowed to build walls that trap either player</li>
+            </ul>
+        </div>
+    </div>
     <div class="row row-centered">
         <div class="col-max col-xs-6 col-centered" align="center">
             <button class="btn btn-default btn-lg" id="btnCreateRoom">Create a new room</button>
@@ -18,9 +32,9 @@
             <div class="modal-body">
                 <form role="form" id="inputForm">
                     <div class="form-group" id="inputRoomGroup">
-                        <label class="control-label" for="inputRoom">Room code</label>
-                        <input type="text" class="form-control" id="inputRoom" placeholder="Enter room code">
-                        <!-->TODO: Make input active on open</!-->
+                        <!--<label class="control-label" for="inputRoom">Room code</label>-->
+                        <input type="text" class="form-control" id="inputRoom" placeholder="Room Code">
+                        <h6>  <i>(After creating a room, the room code is in the hyperlink.)</i></h6>
                     </div>
                     <div class="form-group has-error" id="inputRoomFeedback" style="display: none">
                         <label class="control-label">Invalid room code!</label>
